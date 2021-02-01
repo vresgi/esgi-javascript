@@ -1,20 +1,41 @@
-function type_check_v1(input, type) {
-    switch (typeof input) {
-        case "string":
-        case "symbol":
-        case "number":
-        case "function":
-        case "undefined":
-        case "boolean":
-            return typeof input === type;
+function type_check_v1(variable, type) {
+    const typeOfVariable = typeof variable;
+
+    switch(typeOfVariable) {
         case "object":
-            switch (type) {
-                case 'null':
-                    return input === null;
-                case 'array':
-                    return Array.isArray(input);
+            switch(type) {
+                case "null":
+                    return variable === null;
+                case "array":
+                    return Array.isArray(variable);
+                case "object":
+                    return variable !== null && !Array.isArray(variable);
                 default:
-                    return input !== null && !Array.isArray(input);
+                    return false;
             }
+        default:
+            return typeOfVariable === type;
     }
+}
+
+function type_check_v2(variable, conf) {
+    for (key in conf) {
+        switch (key) {
+            case "type":
+                if (!type_check_v1(variable, conf.type)) return false;
+            case "value":
+                if (JSON.stringify(variable) !== JSON.stringify(conf.value))
+                    return false;
+            case "enum":
+                let found = false;
+                for (subValue of conf.enum) {
+                    if (type_check_v1(variable, {value: subValue})) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) return false;
+        }
+    }
+    return true;
 }
